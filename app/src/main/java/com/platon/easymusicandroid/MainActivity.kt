@@ -59,6 +59,12 @@ private val stations = listOf(
         description = "Радио, на котором собрана вся музыка, все жанры, характеры и исполнители. Идеально подойдет для меломанов.",
         streamUrl = "http://45.95.234.91:8000/music",
         gradientColors = listOf(Color(0xFFFFA500), Color.Yellow) // Оранжевый и жёлтый (инвертировано)
+    ),
+    Station(
+        name = "Memschol FM",
+        description = "Полная сборная солянка от красивых и уникальных жанров до рофл гей ремиксов и блатных треков, часто проводятся подкасты на разные темы в прямом эфире от простого общения до политики.",
+        streamUrl = "https://stream.zeno.fm/hydtchh8maguv.m3u",
+        gradientColors = listOf(Color(0xFF6A0DAD), Color(0xFF9400D3)) // Темно-фиолетовый градиент
     )
 )
 
