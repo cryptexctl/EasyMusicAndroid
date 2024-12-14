@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: 'zulu'
-          java-version: '11'  # Версия JDK, используемая вашим проектом. Убедитесь, что она соответствует вашим требованиям.
+          java-version: '17'  # Версия JDK, используемая вашим проектом. Убедитесь, что она соответствует вашим требованиям.
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
