@@ -52,6 +52,7 @@ android {
 
 dependencies {
     implementation("androidx.activity:activity-compose:1.7.0")
+    implementation("androidx.activity:activity:1.9.3")
     implementation("androidx.compose.material3:material3:1.0.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.0")
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")

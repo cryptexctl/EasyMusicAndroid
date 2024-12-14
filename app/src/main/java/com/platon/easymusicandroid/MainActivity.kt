@@ -1,7 +1,9 @@
 package com.platon.easymusicandroid
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import androidx.activity.enableEdgeToEdge
 
 data class Station(
     val name: String,
@@ -74,7 +77,9 @@ class MainActivity : ComponentActivity() {
     private var currentStationIndex = mutableStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        window.isNavigationBarContrastEnforced = false
 
         // Initialize ExoPlayer
         player = ExoPlayer.Builder(this).build()
@@ -119,6 +124,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EasyMusicApp(
     stations: List<Station>,
@@ -129,15 +136,15 @@ fun EasyMusicApp(
 ) {
     val station = stations[currentStationIndex]
 
-    Box(
+    Scaffold(
         modifier = Modifier
-            .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
                     colors = station.gradientColors
                 )
-            ),
-        contentAlignment = Alignment.Center
+            )
+            .safeContentPadding(),
+        containerColor = Color.Transparent
     ) {
         Column(
             modifier = Modifier
@@ -206,7 +213,9 @@ fun EasyMusicApp(
                 }
 
                 IconButton(onClick = {
-                    if (currentStationIndex < stations.size - 1) onStationChange(currentStationIndex + 1)
+                    if (currentStationIndex < stations.size - 1) onStationChange(
+                        currentStationIndex + 1
+                    )
                 }) {
                     Icon(
                         imageVector = Icons.Filled.ArrowForward,
