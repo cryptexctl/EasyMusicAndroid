@@ -2,8 +2,10 @@ package com.platon.easymusicandroid
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -29,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.ui.platform.LocalContext
 
 data class Station(
     val name: String,
@@ -135,6 +138,8 @@ fun EasyMusicApp(
     onStationChange: (Int) -> Unit
 ) {
     val station = stations[currentStationIndex]
+    val context = LocalContext.current
+    val intent = remember { Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/easymusicplatonoferon/")) }
 
     Scaffold(
         modifier = Modifier
@@ -143,85 +148,105 @@ fun EasyMusicApp(
                     colors = station.gradientColors
                 )
             )
-            .safeContentPadding(),
+            .safeDrawingPadding(),
         containerColor = Color.Transparent
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = station.name,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.SansSerif
+        Box {
+            TextButton(
+                onClick = {
+                    try {
+                        context.startActivity(intent)
+                    }
+                    catch (e: Exception) {
+                        Toast.makeText(context, "Ошибка. Ищи вручную:\n@easymusicplatonoferon", Toast.LENGTH_LONG).show()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color(0xA0FFFFFF)
                 ),
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            Text(
-                text = station.description,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = FontFamily.SansSerif
-                ),
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(
-                text = if (isPlaying) "Now Playing: Streaming" else "Now Playing: Paused",
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.padding(horizontal = 20.dp)
             ) {
-                IconButton(onClick = {
-                    if (currentStationIndex > 0) onStationChange(currentStationIndex - 1)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = "Previous",
-                        tint = Color.White
-                    )
-                }
+                Text(text = "тг чат")
+            }
 
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .background(Color.White, CircleShape)
-                        .clickable { onPlayPauseToggle() },
-                    contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = station.name,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.SansSerif
+                    ),
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                Text(
+                    text = station.description,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontFamily = FontFamily.SansSerif
+                    ),
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    text = if (isPlaying) "Now Playing: Streaming" else "Now Playing: Paused",
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 32.dp)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Filled.Close else Icons.Filled.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play",
-                        tint = Color.Red
-                    )
-                }
+                    IconButton(onClick = {
+                        if (currentStationIndex > 0) onStationChange(currentStationIndex - 1)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Previous",
+                            tint = Color.White
+                        )
+                    }
 
-                IconButton(onClick = {
-                    if (currentStationIndex < stations.size - 1) onStationChange(
-                        currentStationIndex + 1
-                    )
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowForward,
-                        contentDescription = "Next",
-                        tint = Color.White
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .background(Color.White, CircleShape)
+                            .clickable { onPlayPauseToggle() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Filled.Close else Icons.Filled.PlayArrow,
+                            contentDescription = if (isPlaying) "Pause" else "Play",
+                            tint = Color.Red
+                        )
+                    }
+
+                    IconButton(onClick = {
+                        if (currentStationIndex < stations.size - 1) onStationChange(
+                            currentStationIndex + 1
+                        )
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowForward,
+                            contentDescription = "Next",
+                            tint = Color.White
+                        )
+                    }
                 }
             }
         }
