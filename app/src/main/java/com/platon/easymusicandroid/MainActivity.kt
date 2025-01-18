@@ -1,22 +1,21 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.platon.easymusicandroid
 
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,7 +30,26 @@ import androidx.compose.ui.unit.sp
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.pager.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.times
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontVariation
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.unit.times
+import kotlin.math.*
 
 data class Station(
     val name: String,
@@ -39,7 +57,6 @@ data class Station(
     val streamUrl: String,
     val gradientColors: List<Color>
 )
-
 
 private val stations = listOf(
     Station(
@@ -79,6 +96,7 @@ class MainActivity : ComponentActivity() {
     private var isPlaying = mutableStateOf(false)
     private var currentStationIndex = mutableStateOf(0)
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -92,7 +110,7 @@ class MainActivity : ComponentActivity() {
         startService(musicServiceIntent)
 
         setContent {
-            EasyMusicApp(
+            MusicUI(
                 stations = stations,
                 currentStationIndex = currentStationIndex.value,
                 isPlaying = isPlaying.value,
@@ -100,15 +118,15 @@ class MainActivity : ComponentActivity() {
                     if (isPlaying.value) {
                         player.pause()
                         isPlaying.value = false
-                    } else {
+                    }
+                    else {
                         playStation(stations[currentStationIndex.value])
                         isPlaying.value = true
                     }
                 },
                 onStationChange = { newIndex ->
                     currentStationIndex.value = newIndex
-                    playStation(stations[newIndex])
-                    isPlaying.value = true
+                    if (isPlaying.value) playStation(stations[newIndex])
                 }
             )
         }
@@ -127,128 +145,164 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalTextApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EasyMusicApp(
+fun MusicUI(
     stations: List<Station>,
     currentStationIndex: Int,
     isPlaying: Boolean,
     onPlayPauseToggle: () -> Unit,
     onStationChange: (Int) -> Unit
 ) {
-    val station = stations[currentStationIndex]
+    val pagerState = rememberPagerState(pageCount = { stations.size })
+    val pagesSizes = List(
+        stations.size,
+        {i ->
+            48.dp + (350 - 48).dp * min(max(1f - pagerState.currentPageOffsetFraction * 2f, 0f), 1f)
+        }
+    )
+
+    val robotoFlex =
+        Font(
+            R.font.robotoflex,
+            variationSettings = FontVariation.Settings(
+                FontVariation.weight(700),
+                FontVariation.width(150f)
+            )
+        )
+
+    val animatedStationGradient = listOf(
+        animateColorAsState(
+            targetValue = stations[pagerState.currentPage].gradientColors[0], // Изменяем прозрачность
+            animationSpec = tween(durationMillis = 300),
+            label = "gradientcolorone" // Добавляем анимацию
+        ).value,
+        animateColorAsState(
+            targetValue = stations[pagerState.currentPage].gradientColors[1], // Изменяем прозрачность
+            animationSpec = tween(durationMillis = 300),
+            label = "gradientcolortwo" // Добавляем анимацию
+        ).value
+    )
+
+    val bottomSheetState = rememberStandardBottomSheetState(initialValue = SheetValue.PartiallyExpanded)
+    val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = bottomSheetState)
+
     val context = LocalContext.current
     val intent = remember { Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/easymusicplatonoferon/")) }
 
-    Scaffold(
-        modifier = Modifier
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = station.gradientColors
-                )
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        modifier = Modifier.background(
+            brush = Brush.verticalGradient(
+                colors = animatedStationGradient
             )
-            .safeDrawingPadding(),
-        containerColor = Color.Transparent
-    ) {
-        Box {
-            TextButton(
-                onClick = {
-                    try {
-                        context.startActivity(intent)
-                    }
-                    catch (e: Exception) {
-                        Toast.makeText(context, "Ошибка. Ищи вручную:\n@easymusicplatonoferon", Toast.LENGTH_LONG).show()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color(0xA0FFFFFF)
-                ),
-                modifier = Modifier.padding(horizontal = 20.dp)
-            ) {
-                Text(text = "тг чат")
-            }
-
+        ),
+        contentColor = Color.Transparent,
+        containerColor = Color.Transparent,
+        sheetContainerColor = Color(0xff1f1f1f),
+        sheetContent = {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().height(300.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = station.name,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.SansSerif
-                    ),
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                Text(
-                    text = station.description,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = FontFamily.SansSerif
-                    ),
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Text(
-                    text = if (isPlaying) "Now Playing: Streaming" else "Now Playing: Paused",
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 32.dp)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Button(
+                    onClick = { onPlayPauseToggle() },
+                    shape = CircleShape,
+                    modifier = Modifier.size(96.dp),
+                    colors = ButtonColors(
+                        Color.White,
+                        Color(0xff1f1f1f),
+                        Color.White,
+                        Color(0xff1f1f1f)
+                    )
                 ) {
-                    IconButton(onClick = {
-                        if (currentStationIndex > 0) onStationChange(currentStationIndex - 1)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "Previous",
-                            tint = Color.White
-                        )
-                    }
-
-                    Box(
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = "Play",
+                        tint = Color(0xff1f1f1f),
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(72.dp))
+                Button(
+                    onClick = {
+                        try {
+                            context.startActivity(intent)
+                        }
+                        catch (e: Exception) {
+                            Toast.makeText(context, "Ошибка. Ищи вручную:\n@easymusicplatonoferon", Toast.LENGTH_LONG).show()
+                        }
+                    },
+                    colors = ButtonColors(
+                        Color.White,
+                        Color(0xff1f1f1f),
+                        Color.White,
+                        Color(0xff1f1f1f)
+                    )
+                ) {
+                    Text(
+                        text = "ТГ чат",
+                        color = Color(0xff1f1f1f)
+                    )
+                }
+            }
+        },
+        sheetPeekHeight = 200.dp
+    ) {
+        Box {
+            VerticalPager(
+                state = pagerState,
+                contentPadding = PaddingValues(bottom = 300.dp,
+                    top = WindowInsets.systemBars.asPaddingValues(LocalDensity.current)
+                        .calculateTopPadding()
+                ),
+                beyondViewportPageCount = pagerState.pageCount
+            ) { page ->
+                Column {
+                    Text(
+                        text = stations[page].name,
+                        fontFamily = FontFamily(robotoFlex),
+                        fontSize = 40.sp,
+                        color = Color.White,
                         modifier = Modifier
-                            .size(80.dp)
-                            .background(Color.White, CircleShape)
-                            .clickable { onPlayPauseToggle() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Filled.Close else Icons.Filled.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = Color.Red
-                        )
-                    }
-
-                    IconButton(onClick = {
-                        if (currentStationIndex < stations.size - 1) onStationChange(
-                            currentStationIndex + 1
-                        )
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowForward,
-                            contentDescription = "Next",
-                            tint = Color.White
-                        )
-                    }
+                            .fillMaxWidth()
+                            .graphicsLayer {
+                                if (pagerState.offsetForPage(page) >= 0) {
+                                    translationY = pagerState.offsetForPage(page) * (pagerState.layoutInfo.pageSize - 40.sp.toPx() - 4.dp.toPx())
+                                }
+                                else {
+                                    translationY = minOf(0f, pagerState.offsetForPage(page) + 1f) * (pagerState.layoutInfo.pageSize - 40.sp.toPx() - 4.dp.toPx())
+                                }
+                            }
+                            .alpha(maxOf(0f, (1f - abs(pagerState.offsetForPage(page))) / 2) + 0.5f)
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                    Text(
+                        text = stations[page].description,
+                        fontSize = 18.sp,
+                        color = Color.White,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .graphicsLayer {
+                                if (pagerState.offsetForPage(page) >= 0) {
+                                    translationY = pagerState.offsetForPage(page) * (pagerState.layoutInfo.pageSize - 40.sp.toPx() - 4.dp.toPx())
+                                }
+                                else {
+                                    translationY = minOf(0f, pagerState.offsetForPage(page) + 1f) * (pagerState.layoutInfo.pageSize - 40.sp.toPx() - 4.dp.toPx())
+                                }
+                            }
+                            .alpha(maxOf(0f, 1f - abs(pagerState.offsetForPage(page))))
+                            .padding(horizontal = 8.dp, vertical = 12.dp)
+                    )
                 }
             }
         }
     }
+    if (pagerState.settledPage != currentStationIndex) {
+        onStationChange(pagerState.settledPage)
+    }
 }
+
+//следующее нагло стырено из инета, да, я сам бы до такого не додумался, извините
+fun PagerState.offsetForPage(page: Int) = (currentPage - page) + currentPageOffsetFraction

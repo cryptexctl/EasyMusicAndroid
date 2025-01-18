@@ -51,14 +51,17 @@ android {
 }
 
 dependencies {
-    implementation("androidx.activity:activity-compose:1.7.0")
-    implementation("androidx.activity:activity:1.9.3")
-    implementation("androidx.compose.material3:material3:1.0.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.0")
-    implementation("com.google.android.exoplayer:exoplayer:2.19.1")
-    implementation ("com.google.android.material:material:1.9.0")
-    implementation ("junit:junit:4.13.2")
-    implementation ("androidx.test.ext:junit:1.1.5")
-    implementation ("androidx.test.espresso:espresso-core:3.5.1")
-    implementation ("androidx.media:media:1.6.0")
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.activity)
+    implementation(libs.material3)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.exoplayer)
+    implementation(libs.material)
+    implementation(libs.junit)
+    implementation(libs.androidx.junit)
+    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.media)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.androidx.material.icons.extended)
 }
