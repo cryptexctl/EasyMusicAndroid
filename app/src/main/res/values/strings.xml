@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name" translatable="false">AeroCast</string>
+    <string name="tabris_fm_desc">Radio, where plays selected, normal, pleasant tracks of many genres. The playlist is updated daily between 18:00 and 22:00.</string>
+    <string name="night_fm_desc">Radio for concentration, calmness, enjoyment. On radio is playing calm music by various artists. Perfect for night walks and trips.</string>
+    <string name="penis_fm_desc">Radio for those who are not satisfied with the usual tracks and who listen to alternative genres. The radio plays tracks by artists such as Dekma, Kishlak, etc.</string>
+    <string name="platon_fm_desc">Radio that contains all the music, all genres, characters, and performers. Perfect for music lovers.</string>
+    <string name="memschol_fm_desc">A complete hodgepodge of beautiful and unique genres to rofl gay remixes and thug tracks, often live podcasts on various topics from simple communication to politics.</string>
 </resources>
